@@ -2,6 +2,8 @@
 
 import random
 
+import settings
+
 
 class GameOver(Exception):
     def __init__(self, score, reason=''):
@@ -13,15 +15,10 @@ class GameOver(Exception):
 
 
 class Game(object):
-    BIRD_SIZE = 0.05
-    BIRD_X = 0.2
-    BIRD_Y = 0.6
-
     def __init__(self):
-        self.bird = Bird(self.BIRD_X, self.BIRD_Y, self.BIRD_SIZE, self.BIRD_SIZE)
-        self.tube_factory = TubeFactory(tube_width=0.1, gate_width=0.25)
-        self.world = World(self.bird, self.tube_factory, 0.3)
-
+        self.bird = Bird(settings.BIRD_X, settings.BIRD_Y, settings.BIRD_SIZE, settings.BIRD_SIZE)
+        self.tube_factory = TubeFactory(settings.TUBE_WIDTH, settings.GATE_WIDTH)
+        self.world = World(self.bird, self.tube_factory, settings.SPACE_BETWEEN_TUBES)
 
     @property
     def score(self):
@@ -31,21 +28,21 @@ class Game(object):
         self.world.step()
 
     def restart(self):
-        self.bird = Bird(self.BIRD_X, self.BIRD_Y, self.BIRD_SIZE, self.BIRD_SIZE)
+        self.bird = Bird(settings.BIRD_X, settings.BIRD_Y, settings.BIRD_SIZE, settings.BIRD_SIZE)
         self.world.bird = self.bird
         self.world.restart()
 
 
 class World(object):
-    def __init__(self, bird, tube_factory, tubes_distance):
-        assert tubes_distance > 0
+    def __init__(self, bird, tube_factory, space_between_tubes):
+        assert space_between_tubes > 0
 
         self.bird = bird
         self.__tube_factory = tube_factory
 
         self.__tubes = []
         self.__current_tube = None
-        self.__tubes_distance = tube_factory.tube_width + tubes_distance
+        self.__tubes_distance = tube_factory.tube_width + space_between_tubes
 
     @property
     def tubes(self):
@@ -101,9 +98,6 @@ class World(object):
 
 
 class Bird(object):
-    __Y_SPEED_INCREMENT = 0.0006
-    __Y_SPEED_FLAP = 0.013
-
     def __init__(self, x, y, width, height):
         assert 0 < width < 1 and 0 < height < 1
         assert x > 0 and y > 0
@@ -146,21 +140,19 @@ class Bird(object):
         return self.__passed_tubes_number
 
     def step(self):
-        self.__y_speed += self.__Y_SPEED_INCREMENT
+        self.__y_speed += settings.BIRD_Y_SPEED_INCREMENT
         self.__y -= self.__y_speed
 
     def flap(self):
         if self.__y_speed > 0:
             self.__y_speed = 0
-        self.__y_speed -= self.__Y_SPEED_FLAP
+        self.__y_speed -= settings.BIRD_Y_SPEED_FLAP
 
     def tube_passed(self):
         self.__passed_tubes_number += 1
 
 
 class Tube(object):
-    __TUBE_SPEED = 0.005
-
     def __init__(self, x, width, gate_y, gate_width):
         assert gate_y > 0 and gate_y + gate_width < 1
 
@@ -190,7 +182,7 @@ class Tube(object):
         return self.__gate_width
 
     def step(self):
-        self.__x -= self.__TUBE_SPEED
+        self.__x -= settings.TUBE_SPEED
 
     def is_bird_knocked(self, bird):
         if bird.y > self.__gate_y and bird.y_bottom < self.__gate_y + self.__gate_width:
@@ -208,8 +200,6 @@ class Tube(object):
 
 
 class TubeFactory(object):
-    __INITIAL_TUBE_X = 1
-
     def __init__(self, tube_width, gate_width):
         self.__tube_width = tube_width
         self.__gate_width = gate_width
@@ -220,5 +210,5 @@ class TubeFactory(object):
 
     def create(self):
         gate_y = random.random() * (1 - self.__gate_width)
-        return Tube(self.__INITIAL_TUBE_X, self.__tube_width, gate_y, self.__gate_width)
+        return Tube(settings.INITIAL_TUBE_X, self.__tube_width, gate_y, self.__gate_width)
 
