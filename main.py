@@ -33,10 +33,9 @@ class GameWidget(Widget):
 
         Window.bind(on_key_down=self.on_key_down)
 
-        self.game = Game()
+        import settings
+        self.game = Game(settings)
         self.__scale = ScreenScale(self.size)
-
-        print self.get_root_window()
 
         self.bind(pos=self.update_screen)
         self.bind(size=self.update_screen)
@@ -74,7 +73,7 @@ class GameWidget(Widget):
         try:
             self.game.step()
         except GameOver as e:
-            self.game.restart()
+            self.game.reset()
         self.update_canvas()
 
     def on_touch_down(self, touch):
